@@ -28,8 +28,7 @@ const MovieResults = () => {
         
         try {
             // Try to fetch the movies data
-            const response = await fetch("http://localhost:5000/api/movies");
-            
+            const response = await fetch("https://movie-recommendation-system-infimovies.onrender.com/api/movies");            
             if (!response.ok) throw new Error(`Failed to fetch movies data: ${response.status}`);
             
             const jsonData = await response.json();
