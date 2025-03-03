@@ -11,8 +11,8 @@ const MovieResults = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const moviesPerPage = 5; // Show 5 movies per page to better manage 10-15 total results
-    const maxResults = 15; // Maximum number of results to display in total
+    const moviesPerPage = 6; // Show 6 movies per page
+    const maxResults = 18; // Maximum number of results to display in total
     
     useEffect(() => {
         if (!searchCriteria) {
@@ -28,14 +28,24 @@ const MovieResults = () => {
         
         try {
             // Try to fetch the movies data
-            const response = await fetch("https://movie-recommendation-system-infimovies.onrender.com/api/movies");            
+            const response = await fetch("http://localhost:5000/api/movies");
+            //const response = await fetch("https://movie-recommendation-system-infimovies.onrender.com/api/movies");            
+
             if (!response.ok) throw new Error(`Failed to fetch movies data: ${response.status}`);
             
             const jsonData = await response.json();
             
-            // Apply filters
+            // Apply filters - FIXED: Extract the movies array from the response
             console.log('Filtering movies with criteria:', searchCriteria);
-            const filtered = filterMoviesFromData(jsonData, searchCriteria, maxResults);
+            
+            // Make sure we're getting the movies array from the response
+            const moviesArray = jsonData.movies || jsonData;
+            
+            if (!Array.isArray(moviesArray)) {
+                throw new Error('Received data is not an array and does not contain a movies array');
+            }
+            
+            const filtered = filterMoviesFromData(moviesArray, searchCriteria, maxResults);
             console.log(`Filtered to ${filtered.length} movies`);
             
             setFilteredMovies(filtered);
@@ -61,6 +71,12 @@ const MovieResults = () => {
     };
     
     const filterMoviesFromData = (moviesData, criteria, maxResults) => {
+        // Make sure moviesData is an array before filtering
+        if (!Array.isArray(moviesData)) {
+            console.error('Expected an array of movies but received:', moviesData);
+            return [];
+        }
+        
         // Extract criteria
         const { 
             language, 
@@ -105,7 +121,7 @@ const MovieResults = () => {
             }
             
             // Adult content filter
-            if (movieAdult !== adult) {
+            if (adult !== undefined && movieAdult !== adult) {
                 return false;
             }
             
@@ -154,7 +170,7 @@ const MovieResults = () => {
             }
         });
         
-        // Return at most maxResults (15 instead of 1000)
+        // Return at most maxResults
         return results.slice(0, maxResults);
     };
     
